@@ -1,42 +1,25 @@
-version: "3.7"
+version: "3.8"
 
 services:
-
-  siva-demo-application:
-    image: siva-demo-application:latest
-    ports:
-      - "9000:9000"
-    networks:
-      default:
-        aliases:
-          - siva-demo.localhost
-    depends_on:
-      - siva-webapp
-
   siva-webapp:
-    image: siva-webapp:latest
+    build:
+      context: .
+      dockerfile: Dockerfile
     ports:
-      - "8080:8080"
+      - "7777:8080"
     environment:
-      - logging.config=/etc/siva-webapp/logback.xml
-      # Logs directory
-      - BUILD_FOLDER=/tmp/logs
-      - DSS_DATA_FOLDER=/tmp/dss-data
+      - JAVA_OPTS=-Xmx2g
+      - SPRING_AUTOCONFIGURE_EXCLUDE=org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration
+      - SIVA_EUROPE_SIGNATUREPOLICY_DEFAULTPOLICY=POLv3
+      - SIVA_TSL_LOADER_LOADFROMCACHE=false
     networks:
       default:
         aliases:
           - siva.localhost
     volumes:
       - ./docker/logback.xml:/etc/siva-webapp/logback.xml
-
-  dozzle: # Web-based UI for browsing container logs
-    image: amir20/dozzle:latest
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
-    networks:
-      default:
-        aliases:
-          - dozzle.localhost
-    ports:
-      - '11080:8080'
     restart: unless-stopped
+
+networks:
+  default:
+    driver: bridge
